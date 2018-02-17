@@ -20,5 +20,17 @@
       <description>Well, I guess it&amp;rsquo;s live, folks.</description>
     </item>
     
+    <item>
+      <title>$ whoami</title>
+      <link>https://oxapentane.com/whoami/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://oxapentane.com/whoami/</guid>
+      <description>Grigory Shipunov All my contacts are on keybase
+Student and part-time engeneer at Inorganic Chemistry Division, Chemistry Department, Lomonosov Moscow State University.
+Computer-tinkerer.
+Proud owner of a dog.</description>
+    </item>
+    
   </channel>
 </rss>
