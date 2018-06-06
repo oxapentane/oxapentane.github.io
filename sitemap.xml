@@ -3,7 +3,7 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://oxapentane.com/post/init/</loc>
+    <loc>https://oxapentane.com/posts/init/</loc>
     <lastmod>2018-02-17T22:58:25+03:00</lastmod>
   </url>
   
@@ -23,7 +23,7 @@
   </url>
   
   <url>
-    <loc>https://oxapentane.com/post/</loc>
+    <loc>https://oxapentane.com/posts/</loc>
     <lastmod>2018-02-17T22:58:25+03:00</lastmod>
     <priority>0</priority>
   </url>
