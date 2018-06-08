@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Just a Test</title>
-    <link>https://oxapentane.com/</link>
-    <description>Recent content on Just a Test</description>
+    <title>Vim on Just a Test</title>
+    <link>https://oxapentane.com/tags/vim/</link>
+    <description>Recent content in Vim on Just a Test</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Wed, 06 Jun 2018 22:11:25 +0300</lastBuildDate>
     
-	<atom:link href="https://oxapentane.com/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://oxapentane.com/tags/vim/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -19,27 +19,6 @@
       <guid>https://oxapentane.com/posts/vim-to-emacs/</guid>
       <description>Well. If you been around internet any amount of time you might know about one of the oldest holywars: vim v. emacs.
 Personally I&amp;rsquo;ve been in vim camp for the past 6 years, and I loved it. Vim was my everyday tool, mostly for quick&amp;rsquo;n&amp;rsquo;dirty scripts to process experimental data or plot something, and for my LaTeX writing. Vim is ubiquitous: almost every box you ssh to has vim or at least some version of vi.</description>
-    </item>
-    
-    <item>
-      <title>Init</title>
-      <link>https://oxapentane.com/posts/init/</link>
-      <pubDate>Sat, 17 Feb 2018 22:58:25 +0300</pubDate>
-      
-      <guid>https://oxapentane.com/posts/init/</guid>
-      <description>Well, I guess it&amp;rsquo;s live, folks.</description>
-    </item>
-    
-    <item>
-      <title>$ whoami</title>
-      <link>https://oxapentane.com/whoami/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://oxapentane.com/whoami/</guid>
-      <description>Grigory Shipunov All my contacts are on keybase
-Chemistry. Physics. Tasty and unhealthy food.
-Graduated from Inorganic Chemistry Division, Chemistry Department, Lomonosov Moscow State University.
-Computer-tinkerer.</description>
     </item>
     
   </channel>
