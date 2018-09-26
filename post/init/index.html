@@ -1,103 +1,74 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="en-us">
-
 <head>
-  <title>Just a Test</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="The HTML5 Herald" />
-  <meta name="author" content="Grigory Shipunov" />
-  <meta name="generator" content="Hugo 0.41" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda" />
-  <link rel="stylesheet" type="text/css" href="/css/styles.css" />
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Init</title>
+	<meta name="description" content="">
+	<meta name="generator" content="Hugo 0.48" />
+	
+	
+	<link rel="dns-prefetch" href="//fonts.googleapis.com">
+	<link rel="dns-prefetch" href="//fonts.gstatic.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700">
+	<link rel="stylesheet" href="/css/style.css">
+	<script type="text/javascript" src="/js/scripts.js"></script>
+	<link rel="shortcut icon" href="/favicon.ico">
+		
 </head>
-
-<body>
-  <div id="container">
-    <header>
-      <h1>
-                <a href="/">Just a Test</a>
-            </h1>
-
-      <ul id="social-media">
-        
-        <li><a href="https://twitter.com/oxapentane"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-          
-        <li><a href="https://github.com/oxapentane"><i class="fa fa-github fa-lg" aria-hidden="true"></i></a></li>
-           
-      </ul>
-      
-      <p><em>please ignore</em></p>
-      
-    </header>
-
-    
-<nav>
-    <ul>
-        
-        <li>
-            <a class="" href="/whoami/">
-                <i class="fa-li fa  fa-lg"></i><span>$ whoami</span>
-            </a>
-        </li>
-        
-    </ul>
+<body class="body">
+	<div class="container container--outer">
+		<header class="header">
+	<div class="container">
+		<div class="logo" role="banner">
+			<a class="logo__link" href="/" title="Just a Test" rel="home">
+				<div class="logo__title">Just a Test</div>
+				
+			</a>
+		</div>
+	</div>
+	
+<nav class="menu">
+	<ul class="menu__list">
+		<li class="menu__item"><a class="menu__link" href="/whoami/">$ WHOAMI</a></li>
+	</ul>
 </nav>
 
-    <main>
+</header>
+		<div class="wrapper flex">
+			<section class="primary">
+			
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header">
+			<h1 class="post__title">Init</h1><div class="post__meta meta">
+<svg class="icon icon-time" width="16" height="14" viewBox="0 0 16 16"><path d="m8-.0000003c-4.4 0-8 3.6-8 8 0 4.4000003 3.6 8.0000003 8 8.0000003 4.4 0 8-3.6 8-8.0000003 0-4.4-3.6-8-8-8zm0 14.4000003c-3.52 0-6.4-2.88-6.4-6.4000003 0-3.52 2.88-6.4 6.4-6.4 3.52 0 6.4 2.88 6.4 6.4 0 3.5200003-2.88 6.4000003-6.4 6.4000003zm.4-10.4000003h-1.2v4.8l4.16 2.5600003.64-1.04-3.6-2.1600003z"/></svg>
+<time class="post__meta-date meta-date" datetime="2018-02-17T22:58:25">February 17, 2018</time></div>
+		</header><div class="content post__content clearfix">
+			<p>Well, I guess it&rsquo;s live, folks.</p>
 
-
-
-
-<article>
-
-    <h1>Init</h1>
-
-    
-        <aside>
-    <ul>
-        <li>
-            <time class="post-date" datetime="2018-02-17T22:58:25&#43;03:00">Feb 17, 2018</time>
-        </li>
-        
-        
-
-        
-
-        <li>1 min read</li>
-    </ul>
-</aside>
-    
-
-    <p>Well, I guess it&rsquo;s live, folks.</p>
-
-
-</article>
-
-
-<section class="post-nav">
-    <ul>
-        
-        
-    </ul>
-</section>
-    
-
-
-
-
-
+		</div>
+		
+	</article>
 </main>
-    <footer>
-        <h6> | 
-            Rendered by <a href="https://gohugo.io" title="Hugo">Hugo</a> |
-            <a href="https://oxapentane.com/index.xml">Subscribe</a></h6>
-    </footer>
-</div>
-<script src="/js/scripts.js"></script>
-</body>
 
+
+
+
+			</section>
+			
+		</div>
+		<footer class="footer">
+	<div class="container">
+		<div class="footer__copyright">&copy; 2018 Just a Test. <span class="footer__copyright-credits">Generated with <a href="https://gohugo.io/" rel="nofollow noopener" target="_blank">Hugo</a> and <a href="https://github.com/Vimux/Mainroad/" rel="nofollow noopener" target="_blank">Mainroad</a> theme.</span></div>
+	</div>
+</footer>
+	</div>
+<script>
+	var navigation = responsiveNav(".menu", {
+		navClass: "menu--collapse",
+		label: "Menu",
+	});
+</script></body>
 </html>

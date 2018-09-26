@@ -3,12 +3,12 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://oxapentane.com/posts/vim-to-emacs/</loc>
+    <loc>https://oxapentane.com/post/vim-to-emacs/</loc>
     <lastmod>2018-06-06T22:11:25+03:00</lastmod>
   </url>
   
   <url>
-    <loc>https://oxapentane.com/posts/init/</loc>
+    <loc>https://oxapentane.com/post/init/</loc>
     <lastmod>2018-02-17T22:58:25+03:00</lastmod>
   </url>
   
@@ -40,7 +40,7 @@
   </url>
   
   <url>
-    <loc>https://oxapentane.com/posts/</loc>
+    <loc>https://oxapentane.com/post/</loc>
     <lastmod>2018-06-06T22:11:25+03:00</lastmod>
     <priority>0</priority>
   </url>

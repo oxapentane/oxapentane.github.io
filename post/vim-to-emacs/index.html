@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Going from vim to vim inside emacs</title>
+	<meta name="description" content="">
+	<meta name="generator" content="Hugo 0.48" />
+	
+	
+	<link rel="dns-prefetch" href="//fonts.googleapis.com">
+	<link rel="dns-prefetch" href="//fonts.gstatic.com">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700">
+	<link rel="stylesheet" href="/css/style.css">
+	<script type="text/javascript" src="/js/scripts.js"></script>
+	<link rel="shortcut icon" href="/favicon.ico">
+		
+</head>
+<body class="body">
+	<div class="container container--outer">
+		<header class="header">
+	<div class="container">
+		<div class="logo" role="banner">
+			<a class="logo__link" href="/" title="Just a Test" rel="home">
+				<div class="logo__title">Just a Test</div>
+				
+			</a>
+		</div>
+	</div>
+	
+<nav class="menu">
+	<ul class="menu__list">
+		<li class="menu__item"><a class="menu__link" href="/whoami/">$ WHOAMI</a></li>
+	</ul>
+</nav>
+
+</header>
+		<div class="wrapper flex">
+			<section class="primary">
+			
+<main class="main" role="main">
+	<article class="post">
+		<header class="post__header">
+			<h1 class="post__title">Going from vim to vim inside emacs</h1><div class="post__meta meta">
+<svg class="icon icon-time" width="16" height="14" viewBox="0 0 16 16"><path d="m8-.0000003c-4.4 0-8 3.6-8 8 0 4.4000003 3.6 8.0000003 8 8.0000003 4.4 0 8-3.6 8-8.0000003 0-4.4-3.6-8-8-8zm0 14.4000003c-3.52 0-6.4-2.88-6.4-6.4000003 0-3.52 2.88-6.4 6.4-6.4 3.52 0 6.4 2.88 6.4 6.4 0 3.5200003-2.88 6.4000003-6.4 6.4000003zm.4-10.4000003h-1.2v4.8l4.16 2.5600003.64-1.04-3.6-2.1600003z"/></svg>
+<time class="post__meta-date meta-date" datetime="2018-06-06T22:11:25">June 06, 2018</time></div>
+		</header><div class="content post__content clearfix">
+			
+
+<p>Well. If you been around internet any amount of time you might know about
+one of the oldest holywars: vim v. emacs.</p>
+
+<p><img src="../pics/vi-v-emacs.png" alt="tension in the air" /></p>
+
+<p>Personally I&rsquo;ve been in vim camp for the past 6 years, and I loved it.
+Vim was my everyday tool, mostly for quick&rsquo;n&rsquo;dirty scripts to process
+experimental data or plot something, and for my LaTeX writing. Vim is ubiquitous:
+almost every box you ssh to has vim or at least some version of vi.
+Learning vim was gratifying experience: concept of modal editing maybe
+not for everyone, but it definitely suits me. So, I thought that
+my relationship with vim (<a href="https://neovim.io">neovim</a> to be precise)
+would last for decades. But couple of days ago when I was procrastinating
+by means of binge-watching YouTube I found a talk by <a href="https://www.aaronbieber.com">Aaron Bieber</a>
+about how he <a href="https://www.youtube.com/watch?v=JWD1Fpdd4Pc">learned to stop worrying, and love emacs</a>,
+which he gave on vim-centered conference. Since procrastinating by
+trying out a new tool is much easier and less emotionally taxing
+I decided to give emacs a go.</p>
+
+<h2 id="how-to-slowly-turn-emacs-into-better-version-of-vim">How to slowly turn emacs into better version of vim</h2>
+
+<p>So, here&rsquo;s step-by-step dramatic reenactment of me putting together
+my first emacs config as a somewhat long-term vim user.</p>
+
+<h3 id="require-package">(require &lsquo;package)</h3>
+
+<p>With vim I was using pathogen, then
+neobundle, then (after switch to neovim) plug.vim. The latter is
+the only manager that just worked for me, and (thanks to neovim) was
+running asynchronously without freezing whole editor.</p>
+
+<p>Emacs has package manager built-in. And even has several repositories
+for packages, and package manager also handles dependencies! You can just ask
+it to install package you need without worrying about other packages
+it needs to run correctly. After some googling I found &ldquo;package-use&rdquo;
+&mdash; package manager that will load your packages on-demand (which can
+reduce startup time greatly) and even has function of
+installing missing packages on-the-fly (which is useful, since I only
+want to keep track of init.el, and all other stuff should
+happen automagically), but since most
+materials online for different packages I went with built-in
+package.el.</p>
+
+<p>First, we need to enable package management at give it URLs
+of repositories we want to use</p>
+
+<pre><code class="language-elisp">(require 'package)
+(add-to-list 'package-archives '(&quot;org&quot; . &quot;https://orgmode.org/elpa/&quot;))
+(add-to-list 'package-archives '(&quot;melpa&quot; . &quot;https://melpa.org/packages/&quot;))
+(add-to-list 'package-archives '(&quot;melpa-stable&quot; . &quot;https://stable.melpa.org/packages/&quot;))
+(package-initialize)
+(setq package-enable-at-startup nil)
+
+</code></pre>
+
+<p>Lines above basically enable built-in package manager and set up couple
+of popular package repos. Note melpa and melpa-stable: you can pin
+package to specific repository, so you can use bleeding edge where you
+want to and stable release with more wonky stuff. Next comes basically
+emulation of plug.vim behaviour:</p>
+
+<pre><code class="language-elisp">;; credit: http://home.thep.lu.se/~karlf/emacs.html
+(setq my-package-list
+   '(auctex
+	gnuplot
+	magit
+	org
+	evil
+	evil-leader
+	evil-magit
+	markdown-mode
+	smartparens
+	helm
+	linum-relative
+	seoul256-theme
+	smart-mode-line
+	monokai-theme
+	rainbow-delimiters
+	flycheck
+	))
+
+;; install from the list if missing
+(let ((refreshed nil))
+  (when (not package-archive-contents)
+    (package-refresh-contents)
+    (setq refreshed t))
+  (dolist (pkg my-package-list)
+    (when (and (not (package-installed-p pkg))
+	           (assoc pkg package-archive-contents))
+      (unless refreshed
+		  (package-refresh-contents)
+		  (setq refreshed t)k)
+      (package-install pkg))))
+
+(defun package-list-unaccounted-packages ()
+  &quot;Like `package-list-packages`, but only shows
+   the packages that are installed and not in my-package-list&quot;
+  (interactive)
+  (package-show-package-list
+   (remove-if-not (lambda (x) (and (not (memq x my-package-list))
+				   (not (package-built-in-p x))
+				   (package-installed-p x)))
+	(mapcar 'car package-archive-contents))))
+</code></pre>
+
+<p>Comments explain it pretty well &mdash; first part is just a list
+of packages. Next piece of code installs any missing package,
+and last function lists installed packages that not in your
+master list &mdash; that way one can easily remove anything
+that is not needed anymore. As the first line states, kudos
+go <a href="http://home.thep.lu.se/~karlf/emacs.html">here</a>.</p>
+
+<h3 id="evil-mode-t">(evil-mode t)</h3>
+
+<p>After installing evil you just add</p>
+
+<pre><code class="language-elisp">(require 'evil)
+(evil-mode t)
+</code></pre>
+
+<p>to your init.el, which enables evil-mode by default everywhere.</p>
+
+<p>At first I thought that it will be a disappointment as any other
+vim emulator &mdash; generally everything works, but then some
+extra-weird command or combination is broken, and it
+turns into a paper-cut that starts to drive you insane.
+Evil is good. Evil is <em>very</em> good. After using emacs
+for a week I can say that I was relying on my vim muscle memory
+(after several hours spent on configuring evil and evil-leader
+key bindings, ofc). Fair warning: if you a heavy user of ex
+commands (e.g. :find, :set etc) &mdash; bad news, evil is extensive
+<strong>vi</strong> layer, not vim, so most probably it won&rsquo;t work for you as good.</p>
+
+<p>Also, I think it is important to mention evil-leader &mdash; package
+that brings vim leader key functionality to emacs. I personally
+rebinding everything with this. Only emacs chord I&rsquo;m using is
+<code>C-g</code> (break out of any precarious keystroke combination you
+happen to be in). Here&rsquo;s the first snippet of my evil-leader
+config that brought me up to speed (which somewhat emulates
+what I had in my init.vim, but I decided to start from scratch
+and move some stuff around)</p>
+
+<pre><code class="language-elisp">(require 'evil-leader)
+;; enable leader everywhere
+(global-evil-leader-mode)
+;; space works best for me
+(evil-leader/set-leader &quot;&lt;SPC&gt;&quot;)
+;; stuff that I needed for starters
+(evil-leader/set-key
+  &quot;bl&quot; 'list-buffers
+  &quot;bs&quot; 'switch-to-buffer
+  &quot;bk&quot; 'kill-this-buffer
+  &quot;bK&quot; 'kill-buffer
+  &quot;x&quot; 'execute-extended-command
+  &quot;cc&quot; 'comment-region
+  &quot;cl&quot; 'comment-line
+  &quot;sd&quot; 'split-window-below
+  &quot;sr&quot; 'split-window-right
+  &quot;so&quot; 'delete-other-windows
+  &quot;k&quot; 'windmove-up
+  &quot;j&quot; 'windmove-down
+  &quot;h&quot; 'windmove-left
+  &quot;l&quot; 'windmove-right
+ )
+</code></pre>
+
+<h2 id="where-emacs-is-imo-better">Where emacs is [IMO] better</h2>
+
+<p>Emacs has a proper GUI. Not a window frame around text-based
+interface, but a proper GUI. Some people love to shout at
+each other that text editing is, well, text-based task,
+and a cli interface is all you need. But then same people
+go patch their fonts so they get pretty arrows in vim-powerline
+to get that aesthetic that belongs to GUI world (disclaimer: I&rsquo;m guilty
+of this myself). This problem is solved by generating
+small images on-the-fly, so you can have not only arrows
+in your local analog of powerline (which called, surprise,
+emacs-powerline), but different smooth, curvy transition
+elements (my English fails me there) and even you can
+write your own elisp function, the only limit &mdash; it should
+return XPM image, the separator itself.</p>
+
+<p>Git plugin. Magit is very simple, with interactive help built in.
+All the configuration that I did for it is</p>
+
+<pre><code class="language-elisp">;; magit
+(evil-leader/set-key
+  &quot;g&quot; 'magit-status
+  )
+</code></pre>
+
+<p>That&rsquo;s all. A shortcut to launch it. Everything else is handled by
+magit-evil package. And if you press h inside magit buffer it shows
+key cheat sheet. So moving to magit was pretty seamless and fun.</p>
+
+<h2 id="pet-peeves-and-psychotic-hatreds">Pet peeves and psychotic hatreds</h2>
+
+<p><strong>This section is just my opinion</strong></p>
+
+<p>I do not know why, but defaults in old software are terrible.
+Maybe every text editor should beep on every keystroke and
+pollute project folder with all kind of <code>.~#&amp;*~*filename.swap.bak.bak</code>,
+and I just not smart enough to understand this. First thing that I did
+when started configuring vim back in the day &mdash; disabled swap files
+and moved all backups to a dot-folder in my ~. Once couple of years
+when you get some kind of exotic failure in the middle of the deadline
+or when you think that to edit that not-tracked-by-git file after another
+all-nighter is a good idea automatic backups really save your neck. But why pollute
+project tree by default if one can put it somewhere not seen is a mystery
+for me. Emacs do not create swap files, but it adds autosaves to the backups&hellip;
+Only good thing with this behaviour is that it is almost as easy as in vim
+to move backups to the specific folder
+<code>(setq backup-directory-alist `((&quot;.&quot; . &quot;~/.emacs-backups&quot;)))</code>,
+and get rid of useless (since hitting :w while in normal mode comes naturally
+to me) autosaves with <code>(setq auto-save-default nil)</code>.</p>
+
+<p>Startup time. After vim emacs startup is sloooooow. On my main laptop it is
+not such a big problem, but on my dated macbook air (which is used mostly as
+a portable teletype machine) I can literally see how emacs reading editor
+looks section at my (at the moment) not so big init.el line-by-line.
+Vim was ready to action right after hitting RET. There&rsquo;s some ways to tweak
+that, but looking at how people compare the length of emacs startup time
+online one can say that snappy feel of vim is unattainable.</p>
+
+<h2 id="grand-combination">Grand Combination</h2>
+
+<p>Looks like I&rsquo;m sticking to emacs. Evil-mode letting me to keep going without
+loosing speed during everyday tasks, elisp is much friendlier than vimscript,
+which, to be honest, I never really used, and overall feeling is somewhat,
+I dunno, better? If to transform <a href="https://fishshell.com/">fish</a> tagline a little bit,
+finally we have text editor for the nineties!</p>
+
+<p>In conclusion: I&rsquo;m thinking about writing an update in a couple of months,
+so stay tuned. I understand that this post is pretty rough around the
+edges, but this is part of the reason why I decided to get blogging a
+go: to improve my non-scientific English writing skills.</p>
+
+		</div>
+		
+<div class="post__tags tags clearfix">
+	<svg class="icon icon-tag" width="16" height="16" viewBox="0 0 16 16"><path d="M16 9.5c0 .373-.24.74-.5 1l-5 5c-.275.26-.634.5-1 .5-.373 0-.74-.24-1-.5L1 8a2.853 2.853 0 0 1-.7-1C.113 6.55 0 5.973 0 5.6V1.4C0 1.034.134.669.401.401.67.134 1.034 0 1.4 0h4.2c.373 0 .95.113 1.4.3.45.187.732.432 1 .7l7.5 7.502c.26.274.5.632.5.998zM3.5 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
+	<ul class="tags__list">
+		<li class="tags__item"><a class="tags__link btn" href="/tags/vim/" rel="tag">vim</a></li>
+		<li class="tags__item"><a class="tags__link btn" href="/tags/emacs/" rel="tag">emacs</a></li>
+		<li class="tags__item"><a class="tags__link btn" href="/tags/software/" rel="tag">software</a></li>
+		<li class="tags__item"><a class="tags__link btn" href="/tags/holywar/" rel="tag">holywar</a></li>
+	</ul>
+</div>
+	</article>
+</main>
+
+
+
+
+			</section>
+			
+		</div>
+		<footer class="footer">
+	<div class="container">
+		<div class="footer__copyright">&copy; 2018 Just a Test. <span class="footer__copyright-credits">Generated with <a href="https://gohugo.io/" rel="nofollow noopener" target="_blank">Hugo</a> and <a href="https://github.com/Vimux/Mainroad/" rel="nofollow noopener" target="_blank">Mainroad</a> theme.</span></div>
+	</div>
+</footer>
+	</div>
+<script>
+	var navigation = responsiveNav(".menu", {
+		navClass: "menu--collapse",
+		label: "Menu",
+	});
+</script></body>
+</html>
