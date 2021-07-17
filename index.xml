@@ -20,19 +20,5 @@ process of setting up nextcloud under nixos is well documented all over the
 interwebs, migrating &lt;em&gt;already existing&lt;/em&gt; setup proved to be a bit more pain.&lt;/p&gt;</description>
     </item>
     
-    <item>
-      <title>whoami</title>
-      <link>https://blog.oxapentane.com/whoami/</link>
-      <pubDate>Wed, 10 Feb 2021 00:00:00 +0000</pubDate>
-      
-      <guid>https://blog.oxapentane.com/whoami/</guid>
-      <description>Hi, my name is oxapentane. People also call me Grigory, Greg, &amp;ldquo;эй, ты!&amp;rdquo; and many different other names and aliases.
-I was born in Russia over quarter of a century ago.
-I graduated from Moscow State University, department of Chemistry.
-At the moment I&amp;rsquo;m pursuing PhD in physics (by doing mostly chemistry).
-You can find my contact information at the bottom of the page
-About this blog the what This is my garage with the door open.</description>
-    </item>
-    
   </channel>
 </rss>
