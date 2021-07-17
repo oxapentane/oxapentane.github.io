@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<style type=text/css>body{font-family:monospace;}</style>
+	<title>Migrating Nextcloud Setup to Nixos Server</title>
+	
+	
+	<link rel="stylesheet" href="/css/style.css">
+	
+	
+</head>
+<body>
+	<header>
+	=======================<br>
+	== <a href="https://blog.oxapentane.com/">oxapentane&#39;s blog</a> ==<br>
+	=======================
+	<div style="float: right;">неполная коллекция всякой всячины</div><br>
+	<p>
+	<nav>
+			<a href="/"><b>Start</b></a>.
+			
+			
+			<a href="/index.xml"><b>RSS</b></a>.
+			
+	</nav>
+	</p>
+	
+</header>
+
+	
+	<main>
+		<article>
+			<h1>Migrating Nextcloud Setup to Nixos Server</h1>
+			<b><time>2021-07-16</time></b>
+		       
+		           <a href="/tags/nix">nix</a>
+        	       
+		           <a href="/tags/nixos">nixos</a>
+        	       
+		           <a href="/tags/nextcloud">nextcloud</a>
+        	       
+		           <a href="/tags/self-hosting">self-hosting</a>
+        	       
+
+			<div>
+				<p>I decided to play with <a href="https://nixos.org">nixos</a> on my infra again,
+specifically migrate my nextcloud setup to nixos-powered box at home. While the
+process of setting up nextcloud under nixos is well documented all over the
+interwebs, migrating <em>already existing</em> setup proved to be a bit more pain.</p>
+<h2 id="initial-setup--the-plan">Initial Setup &amp; the Plan</h2>
+<p>I had a nextcloud on a box at home, backed by MariaDB and served by apache. It
+was served on a wireguard interface, on the other end of which was a reverse
+proxy machine powered by haproxy. TLS was terminated at the proxy, since traffic
+in between the proxy and the nextcloud box is inside the wireguard tunnel
+anyway. Certificate was provided by Let&rsquo;s Encrypt, and was renewed on systemd
+timer.</p>
+<p>This was &ldquo;just working&rdquo;, but during daily use and tinkering I was slowly putting
+together a list of things I would change for fun and maybe profit:</p>
+<ol>
+<li>
+<p>Move from haproxy to nginx. Haproxy is a wonderful piece of software, but way
+to many features for my needs with more complexity as a bonus. Also nginx is
+way easier to operate with certbot (spoiler: especially in nixos), haproxy
+setup relied on some hacked together shell scripts to renew the certificate,
+cat two files together and then reload the <code>haproxy.service</code>.</p>
+</li>
+<li>
+<p>Move from MariaDB to postgresql. I just know it better, and some planned
+services on this box only support posgresql.</p>
+</li>
+</ol>
+<h2 id="moving-the-database">Moving the Database</h2>
+<p>Here a big warm &ldquo;thank you&rdquo; is due to nextcloud fellas, since the service
+already ships with a <a href="https://docs.nextcloud.com/server/latest/admin_manual/configuration_database/db_conversion.html">tool</a> to convert the database. After setting up postgresql
+along the old MariaDB one (or whatever have you) one just need to run</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#75715e"># first, maintenance, so nothing writes to the database while we fiddle with it</span>
+sudo -u www-data php /var/www/nextcloud/occ maintenance:mode --on
+<span style="color:#75715e"># and now the conversion. Make a backup before, run in tmux, safety first</span>
+sudo -u www-data php /var/www/nextcloud/occ db:convert-type --all-apps --password $PASS pgsql $DB_USER $DB_HOST $DB_NAME
+</code></pre></div><p>After that just go along with <a href="https://docs.nextcloud.com/server/latest/admin_manual/maintenance/backup.html">nextcloud&rsquo;s official backup guide</a>, just
+good thing to remember that you need to backup the <em>new</em> database, if you made a
+switch xD.</p>
+<h2 id="setting-up-a-nixos-box">Setting up a NixOS Box</h2>
+<p>Here after all the trial and error with backup restoration I just went with a
+clean install way first. The systemd service that sets up nextcloud on nixos
+fails if there&rsquo;s anything already in place. Especially funny if it fails, it
+will fail next time for sure if you don&rsquo;t go and manually delete <code>config.php</code>
+from previous attempt<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>,<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>.</p>
+<p>So, saving you couple of paragraphs of failed attempts, here&rsquo;s what worked:</p>
+<p>Installing nextcloud fresh (more details in comments):</p>
+<p>adding to your system config:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix">{
+  <span style="color:#75715e"># serving on 8080 without ssl or anything, termination at reverse proxy</span>
+  networking<span style="color:#f92672">.</span>firewall<span style="color:#f92672">.</span>allowedTCPPorts <span style="color:#f92672">=</span> [ <span style="color:#ae81ff">8080</span> ];
+
+  <span style="color:#75715e"># make sure that DB exist and that nextcloud has a user to access it</span>
+  services<span style="color:#f92672">.</span>postgresql <span style="color:#f92672">=</span> {
+    enable <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    ensureDatabases <span style="color:#f92672">=</span> [ <span style="color:#e6db74">&#34;nextcloud&#34;</span> ];
+    ensureUsers <span style="color:#f92672">=</span> [
+      {
+        name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;nextcloud&#34;</span>;
+        ensurePermissions<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;DATABASE nextcloud&#34;</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;ALL PRIVILEGES&#34;</span>;
+      }
+    ];
+  };
+
+  <span style="color:#75715e"># caching!</span>
+  services<span style="color:#f92672">.</span>redis<span style="color:#f92672">.</span>enable <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+
+  <span style="color:#75715e"># setting up the server</span>
+  services<span style="color:#f92672">.</span>nginx <span style="color:#f92672">=</span> {
+    <span style="color:#75715e"># once again, all the TLS stuff is at reverse proxy</span>
+    enable <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    recommendedGzipSettings <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    recommendedOptimisation <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+
+    virtualHosts <span style="color:#f92672">=</span> {
+      <span style="color:#e6db74">&#34;example.com&#34;</span> <span style="color:#f92672">=</span> {
+
+        <span style="color:#75715e"># copied from nextcloud documentation</span>
+        <span style="color:#75715e"># some of the headers were commented out</span>
+        <span style="color:#75715e"># because they were sent twice for some reason</span>
+        extraConfig <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;
+</span><span style="color:#e6db74">          # HTTP response headers borrowed from Nextcloud .htaccess
+</span><span style="color:#e6db74">          add_header Referrer-Policy                      &#34;no-referrer&#34;   always;
+</span><span style="color:#e6db74">          #add_header X-Content-Type-Options               &#34;nosniff&#34;       always;
+</span><span style="color:#e6db74">          add_header X-Download-Options                   &#34;noopen&#34;        always;
+</span><span style="color:#e6db74">          #add_header X-Frame-Options                      &#34;SAMEORIGIN&#34;    always;
+</span><span style="color:#e6db74">          add_header X-Permitted-Cross-Domain-Policies    &#34;none&#34;          always;
+</span><span style="color:#e6db74">          add_header X-Robots-Tag                         &#34;none&#34;          always;
+</span><span style="color:#e6db74">          add_header X-XSS-Protection                     &#34;1; mode=block&#34; always;
+</span><span style="color:#e6db74">
+</span><span style="color:#e6db74">          # Remove X-Powered-By, which is an information leak
+</span><span style="color:#e6db74">          fastcgi_hide_header X-Powered-By;
+</span><span style="color:#e6db74">        &#39;&#39;</span>;
+        listen <span style="color:#f92672">=</span> [
+          {
+            <span style="color:#75715e"># We are listening on wireguard interface only</span>
+            addr <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;10.3.13.37&#34;</span>;
+            port <span style="color:#f92672">=</span> <span style="color:#ae81ff">8080</span>;
+            ssl <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>;
+          }
+        ];
+      };
+    };
+  };
+
+  <span style="color:#75715e"># Now to nextcloud itself</span>
+  services<span style="color:#f92672">.</span>nextcloud <span style="color:#f92672">=</span> {
+    <span style="color:#75715e"># basics</span>
+    enable <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    hostName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;example.com&#34;</span>;
+    home <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/path/to/nextcloud&#34;</span>;
+    package <span style="color:#f92672">=</span> pkgs<span style="color:#f92672">.</span>nextcloud21;
+    maxUploadSize <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;5000M&#34;</span>;
+    caching<span style="color:#f92672">.</span>redis <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    <span style="color:#75715e"># apps autoupdate</span>
+    autoUpdateApps <span style="color:#f92672">=</span> {
+      enable <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+      startAt <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;07:00:00&#34;</span>;
+    };
+    config <span style="color:#f92672">=</span> {
+      <span style="color:#75715e"># http schenanigans</span>
+      overwriteProtocol <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;https&#34;</span>; <span style="color:#75715e"># our proxy has TLS, so we need to rewrite all URLs</span>
+      trustedProxies <span style="color:#f92672">=</span> [ <span style="color:#e6db74">&#34;10.3.13.33&#34;</span> ]; <span style="color:#75715e"># we are serving through the proxy</span>
+
+      <span style="color:#75715e"># database</span>
+      dbtype <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;pgsql&#34;</span>;
+      dbuser <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;nextcloud&#34;</span>;
+      dbhost <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/run/postgresql&#34;</span>;
+      dbname <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;nextcloud&#34;</span>;
+      <span style="color:#75715e"># admin, nix complains if this not defined</span>
+      adminuser <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;admin&#34;</span>;
+      adminpassFile <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/path/to/admin-user/secret&#34;</span>;
+    };
+  };
+
+  <span style="color:#75715e"># ensure that postgres is running *before* running the setup</span>
+  systemd<span style="color:#f92672">.</span>services<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;nextcloud-setup&#34;</span> <span style="color:#f92672">=</span> {
+    requires <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#34;postgresql.service&#34;</span>];
+    after <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#34;postgresql.service&#34;</span>];
+ };
+}
+</code></pre></div><ul>
+<li>
+<p><code>nixos-rebuild switch</code></p>
+</li>
+<li>
+<p>Putting nextcloud to maintenance with <code>nextcloud-occ maintenance:mode --on</code></p>
+</li>
+<li>
+<p>Nuking the database with <code>DROP DATABASE nextcloud;</code></p>
+</li>
+<li>
+<p>Nuking the user data folder of nextcloud with old trusty <code>rm -fr $DATADIR</code></p>
+</li>
+</ul>
+<p>After that one can just make an empty database, and follow the <a href="https://docs.nextcloud.com/server/latest/admin_manual/maintenance/restore.html">nextcloud&rsquo;s
+official backup restoration guide</a>. Couple of noteworthy points: I
+didn&rsquo;t copy <code>config.php</code> or anything related, any configuration that was not set
+via nix, I just put back via <code>nextcloud-occ</code><sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>, if there&rsquo;s a better way please
+drop me an email.</p>
+<p>After all of the above I had my nextcloud running again, with all the files and
+calendars back where they were. Now we only need to make it accessible from the
+internet again.</p>
+<h2 id="new-reverse-proxy">New Reverse Proxy</h2>
+<p>ssh into the proxy machine, and add this to the config:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-nix" data-lang="nix">{
+  <span style="color:#75715e"># required for Let&#39;s encrypt</span>
+  security<span style="color:#f92672">.</span>acme <span style="color:#f92672">=</span> {
+    email <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;admin@example.com&#34;</span>;
+    acceptTerms <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+  };
+
+  <span style="color:#75715e"># Open ports in the firewall.</span>
+  networking<span style="color:#f92672">.</span>firewall<span style="color:#f92672">.</span>allowedTCPPorts <span style="color:#f92672">=</span> [
+    <span style="color:#ae81ff">80</span>
+    <span style="color:#ae81ff">443</span>
+  ];
+
+  services<span style="color:#f92672">.</span>nginx <span style="color:#f92672">=</span> {
+    <span style="color:#75715e"># No more copypasting best practices from config to config</span>
+    <span style="color:#75715e"># Someone already did it for you! To see what it entails read</span>
+    <span style="color:#75715e"># nixos/modules/services/web-servers/nginx/default.nix</span>
+    <span style="color:#75715e"># in nixpkgs</span>
+    enable <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    recommendedProxySettings <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    recommendedTlsSettings <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    recommendedGzipSettings <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+    recommendedOptimisation <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+
+    sslCiphers <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;AES256+EECDH:AES256+EDH:!aNULL&#34;</span>;
+  };
+
+
+  services<span style="color:#f92672">.</span>nginx<span style="color:#f92672">.</span>virtualHosts<span style="color:#f92672">.</span><span style="color:#e6db74">&#34;example.com&#34;</span> <span style="color:#f92672">=</span> {
+    enableACME <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>; <span style="color:#75715e"># this two lines is all you need</span>
+    forceSSL <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;   <span style="color:#75715e"># for Let&#39;s Encrypt enabled TLS on your domain!</span>
+    extraConfig <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;
+</span><span style="color:#e6db74">     client_max_body_size 512M;
+</span><span style="color:#e6db74">    &#39;&#39;</span>;
+    locations <span style="color:#f92672">=</span> {
+      <span style="color:#e6db74">&#34;/&#34;</span> <span style="color:#f92672">=</span> {
+        proxyPass <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;http://10.3.13.37:8080&#34;</span>; <span style="color:#75715e"># reverse proxying to our nextcloud in wireguard</span>
+      };
+      <span style="color:#75715e"># additional redirects for dav services autodiscovery</span>
+      <span style="color:#e6db74">&#34;/well-known/carddav&#34;</span> <span style="color:#f92672">=</span> {
+        return <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;301 $scheme://$host/remote.php/dav&#34;</span>;
+      };
+      <span style="color:#e6db74">&#34;/well-known/caldav&#34;</span> <span style="color:#f92672">=</span> {
+        return <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;301 $scheme://$host/remote.php/dav&#34;</span>;
+      };
+    };
+  };
+
+}
+</code></pre></div><p>That&rsquo;s it! All the best practices boilerplate and Let&rsquo;s Encrypt powered TLS
+setup already handled by nix. You just need to sit back and <del>pray</del> watch
+<code>nixos-rebuild switch</code> do its magic.</p>
+<p>That&rsquo;s it! If there&rsquo;s a way to do better anything from the above, don&rsquo;t hesitate
+to reach out, I&rsquo;d like to learn :D.</p>
+<section class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1" role="doc-endnote">
+<p>I lost the github issue where this is described, and too lazy to search
+for it again.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2" role="doc-endnote">
+<p>And this is what happens when the idea of OS build around purely functional
+package manager meets the harsh reality of real world with stateful software
+and FHS assumption :D.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3" role="doc-endnote">
+<p><a href="https://docs.nextcloud.com/server/latest/admin_manual/">Nextcloud documentation</a> is a wonderful resource.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</section>
+			</div>
+		</article>
+	</main>
+<aside>
+	<div>
+		<div>
+			<h3>LATEST POSTS</h3>
+		</div>
+		<div>
+			<ul>
+				
+				<li><a href="/posts/nixcloud/">Migrating Nextcloud Setup to Nixos Server</a></li>
+				
+			</ul>
+		</div>
+	</div>
+</aside>
+
+
+	<footer>
+	<p>&copy; 2021 <a href="https://blog.oxapentane.com/"><b>All rites reversed</b></a>.
+	<a href="https://github.com/oxapentane"><b>github</b></a>.
+	<a href="https://chaos.social/@oxapentane"><b>mastodon</b></a>.
+	<a href="https://twitter.com/oxapentane"><b>twitter</b></a>.
+	</p>
+</footer>
+
+</body>
+</html>

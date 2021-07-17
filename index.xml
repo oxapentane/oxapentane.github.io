@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>oxapentane&#39;s blog</title>
+    <link>https://blog.oxapentane.com/</link>
+    <description>Recent content on oxapentane&#39;s blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>All rites reversed</copyright>
+    <lastBuildDate>Fri, 16 Jul 2021 23:10:22 +0200</lastBuildDate><atom:link href="https://blog.oxapentane.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Migrating Nextcloud Setup to Nixos Server</title>
+      <link>https://blog.oxapentane.com/posts/nixcloud/</link>
+      <pubDate>Fri, 16 Jul 2021 23:10:22 +0200</pubDate>
+      
+      <guid>https://blog.oxapentane.com/posts/nixcloud/</guid>
+      <description>&lt;p&gt;I decided to play with &lt;a href=&#34;https://nixos.org&#34;&gt;nixos&lt;/a&gt; on my infra again,
+specifically migrate my nextcloud setup to nixos-powered box at home. While the
+process of setting up nextcloud under nixos is well documented all over the
+interwebs, migrating &lt;em&gt;already existing&lt;/em&gt; setup proved to be a bit more pain.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>whoami</title>
+      <link>https://blog.oxapentane.com/whoami/</link>
+      <pubDate>Wed, 10 Feb 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.oxapentane.com/whoami/</guid>
+      <description>Hi, my name is oxapentane. People also call me Grigory, Greg, &amp;ldquo;эй, ты!&amp;rdquo; and many different other names and aliases.
+I was born in Russia over quarter of a century ago.
+I graduated from Moscow State University, department of Chemistry.
+At the moment I&amp;rsquo;m pursuing PhD in physics (by doing mostly chemistry).
+You can find my contact information at the bottom of the page
+About this blog the what This is my garage with the door open.</description>
+    </item>
+    
+  </channel>
+</rss>
